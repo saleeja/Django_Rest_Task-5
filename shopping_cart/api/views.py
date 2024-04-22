@@ -54,6 +54,7 @@ class ProfileRetrieveAPIView(APIView):
     def get(self, request, pk):
         try:
             user = CustomUser.objects.get(pk=pk)
+            # breakpoint()
             serializer = ProfileSerializer(user)
             return Response(serializer.data)
         except CustomUser.DoesNotExist:
@@ -79,17 +80,66 @@ class ProfileUpdateAPIView(generics.UpdateAPIView):
         else:
             return response
         
+# class UserListAPIView(generics.ListAPIView):
+#     queryset = CustomUser.objects.all()
+#     serializer_class = ProfileSerializer
+
+
+# class UserListAPIView(generics.ListAPIView):
+#     serializer_class = ProfileSerializer
+#     def get_queryset(self):
+#         q=self.request.GET.get('q')
+#         queryset = CustomUser.objects.all()
+#         if q:
+#             queryset = CustomUser.objects.filter(username__icontains=q)
+#         return queryset
+
+
 class UserListAPIView(generics.ListAPIView):
-    queryset = CustomUser.objects.all()
     serializer_class = ProfileSerializer
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        if queryset.exists():
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data)
-        else:
-            return Response({"message": "No users found"}, status=status.HTTP_404_NOT_FOUND)
+    def get_queryset(self):
+        queryset = CustomUser.objects.all()
+
+        # Filter based on search query parameter
+        q = self.request.GET.get('q')
+        if q:
+            queryset = queryset.filter(username__icontains=q)
+
+        # filters
+        param1 = self.request.GET.get('param1')
+        if param1:
+            queryset = queryset.filter(field1=param1)
+
+        param2 = self.request.GET.get('param2')
+        if param2:
+            queryset = queryset.filter(field2=param2)
+        
+        # Filter based on role name
+        role_name = self.request.GET.get('role')
+        if role_name:
+            queryset = queryset.filter(role__name=role_name)
+
+        # Sorting
+        ordering = self.request.GET.get('ordering')
+        if ordering:
+            if ordering.lower() == 'desc' or ordering.lower() == 'descending':
+                ordering = '-id'  
+            elif ordering.lower() == 'asc' or ordering.lower() == 'ascending':
+                ordering = 'id'  
+            queryset = queryset.order_by(ordering)
+
+        return queryset
+
+
+# class UserListAPIView(generics.ListAPIView):
+#     serializer_class = ProfileSerializer
+
+#     def get_queryset(self):
+#         breakpoint()
+#         queryset = CustomUser.objects.all()
+#         # queryset = self.queryset
+#         return queryset
         
 
 class UserDeleteAPIView(generics.DestroyAPIView):
