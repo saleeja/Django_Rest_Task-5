@@ -105,15 +105,6 @@ class UserListAPIView(generics.ListAPIView):
         q = self.request.GET.get('q')
         if q:
             queryset = queryset.filter(username__icontains=q)
-
-        # filters
-        param1 = self.request.GET.get('param1')
-        if param1:
-            queryset = queryset.filter(field1=param1)
-
-        param2 = self.request.GET.get('param2')
-        if param2:
-            queryset = queryset.filter(field2=param2)
         
         # Filter based on role name
         role_name = self.request.GET.get('role')
